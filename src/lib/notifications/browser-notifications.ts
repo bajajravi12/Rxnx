@@ -37,7 +37,6 @@ export function showChatMessageNotification(input: ChatMessageNotificationInput)
       tag: `nova-chat-${input.chatId}`,
       // Collapses rapid successive messages in the same chat into one
       // notification slot instead of stacking a dozen OS notifications.
-      renotify: true,
     });
 
     notification.onclick = () => {
