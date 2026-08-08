@@ -238,6 +238,7 @@ export async function hydrateMessages(
   const replyById = new Map(replyRows.map((r) => [r.id, r]));
   const attachmentsByMessageId = new Map<string, PublicAttachment[]>();
   for (const attachment of attachments) {
+    if (!attachment.message_id) continue;
     const list = attachmentsByMessageId.get(attachment.message_id) ?? [];
     list.push(toPublicAttachment(attachment));
     attachmentsByMessageId.set(attachment.message_id, list);
