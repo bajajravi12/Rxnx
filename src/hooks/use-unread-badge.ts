@@ -5,10 +5,10 @@ import { useChatsContext } from '@/components/providers/chats-provider';
 
 const BASE_TITLE = 'Nova';
 
-interface NavigatorWithBadging extends Navigator {
+type NavigatorWithBadging = Navigator & {
   setAppBadge?: (contents?: number) => Promise<void>;
   clearAppBadge?: () => Promise<void>;
-}
+};
 
 /**
  * Mirrors total unread count (muted chats excluded, matching how their
@@ -35,4 +35,4 @@ export function useUnreadBadge(): void {
       });
     }
   }, [chats]);
-}
+};
