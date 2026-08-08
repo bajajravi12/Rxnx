@@ -3,6 +3,7 @@
 // This must be kept in sync with the bindings declared in wrangler.toml.
 
 interface CloudflareEnv {
+  [key: string]: unknown;
   // --- D1 -------------------------------------------------------------
   DB: D1Database;
 
