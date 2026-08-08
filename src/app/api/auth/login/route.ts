@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     const session = await createSessionForUser(env, {
       userId: user.id,
-      rememberMe: input.rememberMe,
+      rememberMe: input.rememberMe ?? false,
       userAgent: getUserAgent(request),
       ipAddress,
     });
