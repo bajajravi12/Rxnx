@@ -1,0 +1,12 @@
+# Copy this file to .dev.vars for local development (wrangler pages dev / next dev
+# via setupDevPlatform will pick it up automatically). Never commit the real
+# .dev.vars file — it is already in .gitignore.
+#
+# In production, set the same keys with:
+#   wrangler secret put SESSION_SECRET --config wrangler.toml
+#   wrangler secret put SESSION_SECRET --config wrangler.realtime.toml
+
+# 32+ byte random string used to sign session tokens (HMAC) in addition to
+# the opaque session id stored in D1/KV. Generate with:
+#   openssl rand -base64 48
+SESSION_SECRET=REPLACE_WITH_RANDOM_SECRET_AT_LEAST_32_BYTES

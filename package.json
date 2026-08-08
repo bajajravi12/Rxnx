@@ -1,0 +1,56 @@
+{
+  "name": "nova-chat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nova — a realtime messaging platform built on Next.js 15 and Cloudflare Workers, D1, Durable Objects, R2 and KV.",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "dev:realtime": "wrangler dev --config wrangler.realtime.toml",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "typecheck:worker": "tsc --noEmit -p tsconfig.worker.json",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:preview": "npm run pages:build && wrangler pages dev .vercel/output/static --config wrangler.toml",
+    "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static --config wrangler.toml",
+    "realtime:deploy": "wrangler deploy --config wrangler.realtime.toml",
+    "deploy": "npm run realtime:deploy && npm run pages:deploy",
+    "db:migrate:local": "wrangler d1 migrations apply nova-chat-db --local --config wrangler.toml",
+    "db:migrate:remote": "wrangler d1 migrations apply nova-chat-db --remote --config wrangler.toml",
+    "db:seed:local": "wrangler d1 execute nova-chat-db --local --config wrangler.toml --file=./db/seed/seed.sql",
+    "db:studio": "wrangler d1 execute nova-chat-db --local --config wrangler.toml --command \"SELECT name FROM sqlite_master WHERE type='table';\""
+  },
+  "dependencies": {
+    "next": "15.1.6",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "hono": "4.6.16",
+    "zod": "3.24.1",
+    "nanoid": "5.0.9",
+    "date-fns": "4.1.0",
+    "clsx": "2.1.1",
+    "tailwind-merge": "2.6.0",
+    "lucide-react": "0.469.0",
+    "framer-motion": "11.15.0",
+    "@tanstack/react-virtual": "3.11.2"
+  },
+  "devDependencies": {
+    "typescript": "5.7.3",
+    "@types/node": "22.10.5",
+    "@types/react": "19.0.7",
+    "@types/react-dom": "19.0.3",
+    "@cloudflare/workers-types": "4.20250109.0",
+    "@cloudflare/next-on-pages": "1.13.5",
+    "wrangler": "3.101.0",
+    "eslint": "8.57.1",
+    "eslint-config-next": "15.1.6",
+    "tailwindcss": "3.4.17",
+    "postcss": "8.4.49",
+    "autoprefixer": "10.4.20",
+    "vercel": "39.4.4"
+  }
+}

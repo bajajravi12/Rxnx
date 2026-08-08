@@ -1,0 +1,94 @@
+name = "nova-chat-web"
+compatibility_date = "2025-01-20"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# ---------------------------------------------------------------------------
+# Environment variables (non-secret, build/runtime config).
+# Secrets (SESSION_SECRET, etc.) are NOT stored here — set them with:
+#   wrangler secret put SESSION_SECRET --config wrangler.toml
+# and for local dev, put them in .dev.vars (gitignored).
+# ---------------------------------------------------------------------------
+[vars]
+ENVIRONMENT = "production"
+APP_NAME = "Nova"
+SESSION_COOKIE_NAME = "nova_session"
+SESSION_TTL_SECONDS = "2592000"
+REMEMBER_ME_TTL_SECONDS = "7776000"
+MAX_UPLOAD_BYTES = "2147483648"
+# "websocket" (default) needs the realtime worker deployed, which needs
+# Durable Objects, which needs Workers Paid ($5/mo). No Workers Paid plan?
+# Set this to "polling" instead — see the "Deploying on the free plan"
+# section in README.md for the full checklist (this var plus removing the
+# two [[durable_objects.bindings]] blocks below and the REALTIME_WORKER_URL
+# line, since a script_name binding to a worker that was never deployed
+# will fail the Pages deploy outright, not just at runtime).
+REALTIME_MODE = "websocket"
+# Public WebSocket origin of the deployed realtime worker (wrangler.realtime.toml).
+# Only used when REALTIME_MODE = "websocket". Defaults to the workers.dev
+# subdomain wrangler assigns on first deploy — replace with a custom
+# domain/route once one is attached, e.g. "wss://realtime.your-domain.com".
+REALTIME_WORKER_URL = "wss://nova-chat-realtime.REPLACE_WITH_YOUR_SUBDOMAIN.workers.dev"
+
+# ---------------------------------------------------------------------------
+# D1 — primary relational store (users, sessions, chats, messages, groups...)
+# Create with: wrangler d1 create nova-chat-db
+# Then replace database_id below with the returned id.
+# ---------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "nova-chat-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "db/migrations"
+
+# ---------------------------------------------------------------------------
+# KV — fast-path session lookups and rate-limit counters.
+# Create with: wrangler kv namespace create SESSIONS_KV
+#              wrangler kv namespace create RATE_LIMIT_KV
+# ---------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "SESSIONS_KV"
+id = "REPLACE_WITH_SESSIONS_KV_ID"
+preview_id = "REPLACE_WITH_SESSIONS_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "REPLACE_WITH_RATE_LIMIT_KV_ID"
+preview_id = "REPLACE_WITH_RATE_LIMIT_KV_PREVIEW_ID"
+
+# ---------------------------------------------------------------------------
+# R2 — object storage for images, video, audio, voice notes, documents.
+# Create with: wrangler r2 bucket create nova-chat-uploads
+# ---------------------------------------------------------------------------
+[[r2_buckets]]
+binding = "UPLOADS_BUCKET"
+bucket_name = "nova-chat-uploads"
+
+# ---------------------------------------------------------------------------
+# Durable Objects — defined and deployed in the separate realtime worker
+# (see wrangler.realtime.toml). Bound here *cross-script* via script_name so
+# the Pages project can open WebSocket/RPC connections to the same DO
+# instances the realtime worker manages. No [[migrations]] block is needed
+# here — migrations for these classes live with the worker that owns them.
+#
+# FREE TIER (no Workers Paid plan): delete this entire block. A script_name
+# binding pointing at a worker that was never deployed fails the Pages
+# deploy at publish time, not gracefully at runtime — so this can't be left
+# in "just in case" with REALTIME_MODE=polling above; it has to actually be
+# removed. See README.md → "Deploying on the free plan".
+# ---------------------------------------------------------------------------
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoomDurableObject"
+script_name = "nova-chat-realtime"
+
+[[durable_objects.bindings]]
+name = "PRESENCE"
+class_name = "PresenceDurableObject"
+script_name = "nova-chat-realtime"
+
+# ---------------------------------------------------------------------------
+# Pages build settings
+# ---------------------------------------------------------------------------
+[build]
+command = "npm run pages:build"

@@ -1,0 +1,51 @@
+name = "nova-chat-realtime"
+main = "src/workers/index.ts"
+compatibility_date = "2025-01-20"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+# ---------------------------------------------------------------------------
+# Same D1 database as the Pages project. The realtime worker reads it to
+# hydrate a chat room's recent state when a Durable Object wakes from
+# hibernation, and writes lightweight, high-frequency state (last_seen,
+# delivery timestamps) that the API routes don't need to handle inline.
+# ---------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "nova-chat-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "db/migrations"
+
+[[kv_namespaces]]
+binding = "SESSIONS_KV"
+id = "REPLACE_WITH_SESSIONS_KV_ID"
+preview_id = "REPLACE_WITH_SESSIONS_KV_PREVIEW_ID"
+
+[[r2_buckets]]
+binding = "UPLOADS_BUCKET"
+bucket_name = "nova-chat-uploads"
+
+# ---------------------------------------------------------------------------
+# Durable Object classes owned by this worker:
+#   ChatRoomDurableObject — one instance per chat (1:1 or group). Holds the
+#     live WebSocket sessions for members currently connected, broadcasts
+#     new messages / edits / deletes / reactions / typing / read receipts.
+#   PresenceDurableObject — one instance per user. Tracks online/offline
+#     state and last-seen across all of that user's connected devices/tabs.
+# ---------------------------------------------------------------------------
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoomDurableObject"
+
+[[durable_objects.bindings]]
+name = "PRESENCE"
+class_name = "PresenceDurableObject"
+
+# SQLite-backed Durable Object storage (Cloudflare's current default for new
+# classes) — cheaper and supports richer querying than the legacy KV-backed
+# DO storage.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatRoomDurableObject", "PresenceDurableObject"]
